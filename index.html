@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#102b3f">
+    <meta
+      name="description"
+      content="Panel estático para analizar órdenes de mantenimiento CMMS/GMAO, visualizar indicadores y exportar informes."
+    >
+    <title>GMAO · Inteligencia de mantenimiento</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23102b3f'/%3E%3Cpath d='M11 26V14h5l4 6 4-6h5v12h-5v-5l-4 5-4-5v5z' fill='%2378dfc2'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Navegación principal">
+        <a class="brand" href="#inicio" aria-label="GMAO, inicio">
+          <span class="brand-mark" aria-hidden="true">G</span>
+          <span class="brand-copy">
+            <strong>GMAO</strong>
+            <span>ASSET INTELLIGENCE</span>
+          </span>
+        </a>
+
+        <div class="sidebar-label">ESPACIO DE TRABAJO</div>
+        <nav class="side-nav">
+          <a class="nav-link active" href="#inicio"><span class="nav-icon" aria-hidden="true">◫</span>Vista general</a>
+          <a class="nav-link" href="#analisis"><span class="nav-icon" aria-hidden="true">⌁</span>Análisis</a>
+          <a class="nav-link" href="#priorizacion"><span class="nav-icon" aria-hidden="true">◎</span>Priorización</a>
+          <a class="nav-link" href="#metodologia"><span class="nav-icon" aria-hidden="true">⌘</span>Metodología</a>
+        </nav>
+
+        <div class="sidebar-spacer"></div>
+        <div class="privacy-card">
+          <span class="privacy-icon" aria-hidden="true">◈</span>
+          <strong>Procesamiento privado</strong>
+          <p>Los datos se analizan en tu navegador. No se envían a ningún servidor.</p>
+        </div>
+        <div class="sidebar-footer">CMMS · CONFIABILIDAD</div>
+      </aside>
+
+      <main class="main-content" id="inicio">
+        <header class="topbar">
+          <div class="breadcrumb"><span>Workspace</span><span class="breadcrumb-slash">/</span><strong>Panel de mantenimiento</strong></div>
+          <div class="topbar-actions">
+            <span class="local-badge"><span class="status-dot"></span> Análisis local</span>
+            <button class="button button-secondary" id="print-report" type="button" disabled>
+              <span aria-hidden="true">⇧</span> Exportar informe PDF
+            </button>
+            <button class="button button-primary" id="open-upload" type="button">
+              <span aria-hidden="true">＋</span> Cargar dataset
+            </button>
+          </div>
+        </header>
+
+        <section class="page-content">
+          <div class="page-heading">
+            <div>
+              <div class="eyebrow"><span class="eyebrow-line"></span>GESTIÓN DE ACTIVOS · CMMS</div>
+              <h1>Inteligencia de <span>mantenimiento</span></h1>
+              <p class="page-subtitle">Convierte tus órdenes de trabajo en decisiones operacionales.</p>
+            </div>
+            <div class="dataset-meta" id="dataset-meta" hidden>
+              <span class="meta-label">DATASET ACTIVO</span>
+              <strong id="dataset-name">—</strong>
+              <span id="dataset-details">—</span>
+            </div>
+          </div>
+
+          <section class="welcome-panel" id="welcome-panel" aria-labelledby="welcome-title">
+            <div class="welcome-copy">
+              <span class="welcome-kicker">PLATAFORMA DE ANÁLISIS CMMS</span>
+              <h2 id="welcome-title">Empieza con tus datos.<br><span>Obtén una visión clara.</span></h2>
+              <p>Importa un archivo CSV de órdenes de trabajo para generar indicadores, explorar gráficos dinámicos y crear un informe ejecutivo listo para PDF.</p>
+              <button class="button button-primary button-large" id="welcome-upload" type="button">
+                Seleccionar archivo CSV <span aria-hidden="true">→</span>
+              </button>
+              <div class="welcome-footnote"><span aria-hidden="true">◈</span> Tus archivos no salen de este dispositivo.</div>
+            </div>
+            <div class="welcome-art" aria-hidden="true">
+              <div class="orbit orbit-outer"></div>
+              <div class="orbit orbit-inner"></div>
+              <div class="art-core"><span>G</span><i></i></div>
+              <div class="art-spark spark-one"></div>
+              <div class="art-spark spark-two"></div>
+              <div class="art-spark spark-three"></div>
+              <div class="art-caption">DATA · ASSETS · INSIGHTS</div>
+            </div>
+            <div class="welcome-bottom">
+              <span>ARCHIVOS COMPATIBLES</span>
+              <span class="file-chip">CSV <small>UTF-8</small></span>
+              <span class="file-chip">CMMS <small>40 columnas</small></span>
+              <span class="welcome-help">También admite CSV exportados desde Excel.</span>
+            </div>
+          </section>
+
+          <div class="notice" id="notice" role="status" aria-live="polite" hidden></div>
+
+          <section class="dashboard" id="dashboard" hidden>
+            <div class="section-toolbar">
+              <div>
+                <div class="section-kicker">RESUMEN EJECUTIVO</div>
+                <h2>Panorama operacional</h2>
+              </div>
+              <div class="filters">
+                <label class="filter-control">
+                  <span>ESTRATEGIA</span>
+                  <select id="maintenance-filter" aria-label="Filtrar por tipo de mantenimiento">
+                    <option value="">Todos los tipos</option>
+                  </select>
+                </label>
+                <label class="filter-control">
+                  <span>UNIDAD</span>
+                  <select id="unit-filter" aria-label="Filtrar por unidad">
+                    <option value="">Todas las unidades</option>
+                  </select>
+                </label>
+                <button class="icon-button" id="reset-filters" type="button" title="Limpiar filtros" aria-label="Limpiar filtros">↺</button>
+              </div>
+            </div>
+
+            <div class="kpi-grid" id="kpi-grid"></div>
+
+            <div class="insight-banner" id="insight-banner"></div>
+
+            <div class="analysis-heading" id="analisis">
+              <div>
+                <div class="section-kicker">LECTURA DEL DESEMPEÑO</div>
+                <h2>Análisis visual</h2>
+              </div>
+              <span class="live-indicator"><span></span> ACTUALIZADO CON FILTROS</span>
+            </div>
+
+            <div class="chart-grid" id="chart-grid">
+              <article class="chart-card chart-card-wide">
+                <div class="chart-header">
+                  <div><span class="chart-index">01</span><h3>Distribución del mantenimiento</h3></div>
+                  <p>Participación por estrategia</p>
+                </div>
+                <div class="chart-container chart-donut" id="chart-mix"></div>
+              </article>
+              <article class="chart-card">
+                <div class="chart-header">
+                  <div><span class="chart-index">02</span><h3>Costos por estrategia</h3></div>
+                  <p>Gasto directo · CLP</p>
+                </div>
+                <div class="chart-container" id="chart-cost"></div>
+              </article>
+              <article class="chart-card">
+                <div class="chart-header">
+                  <div><span class="chart-index">03</span><h3>Mayor indisponibilidad</h3></div>
+                  <p>Top 8 equipos · horas</p>
+                </div>
+                <div class="chart-container" id="chart-downtime"></div>
+              </article>
+              <article class="chart-card chart-card-wide">
+                <div class="chart-header">
+                  <div><span class="chart-index">04</span><h3>Pareto de modos de falla</h3></div>
+                  <p>Frecuencia y porcentaje acumulado</p>
+                </div>
+                <div class="chart-container" id="chart-pareto"></div>
+              </article>
+              <article class="chart-card">
+                <div class="chart-header">
+                  <div><span class="chart-index">05</span><h3>MTTR por tipo de equipo</h3></div>
+                  <p>Correctivos con reparación válida · horas</p>
+                </div>
+                <div class="chart-container" id="chart-mttr"></div>
+              </article>
+              <article class="chart-card chart-card-wide" id="priorizacion">
+                <div class="chart-header">
+                  <div><span class="chart-index">06</span><h3>Priorización Jack-Knife</h3></div>
+                  <p>Frecuencia de OT vs. tiempo medio de reparación</p>
+                </div>
+                <div class="chart-container" id="chart-jackknife"></div>
+              </article>
+            </div>
+
+            <section class="priority-section">
+              <div class="analysis-heading">
+                <div>
+                  <div class="section-kicker">ATENCIÓN RECOMENDADA</div>
+                  <h2>Equipos con mayor downtime</h2>
+                </div>
+                <span class="table-note">Ordenados por indisponibilidad acumulada</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>#</th><th>EQUIPO</th><th>TIPO DE EQUIPO</th><th>CRITICIDAD</th><th>ÓRDENES</th><th>DOWNTIME</th><th>COSTO DIRECTO</th></tr></thead>
+                  <tbody id="priority-table"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="methodology" id="metodologia">
+              <div class="methodology-icon" aria-hidden="true">i</div>
+              <div>
+                <div class="section-kicker">ALCANCE Y METODOLOGÍA</div>
+                <p>Los indicadores se calculan en el navegador sobre los registros filtrados. El MTTR considera órdenes correctivas con un tiempo de reparación positivo. Jack-Knife utiliza la frecuencia y el MTTR por equipo; las líneas de referencia son las medianas del conjunto filtrado. Las métricas dependen de la calidad y completitud del archivo CMMS.</p>
+              </div>
+            </section>
+          </section>
+
+          <footer class="page-footer">
+            <span>GMAO <span class="footer-dot">·</span> ANÁLISIS DE ACTIVOS</span>
+            <span>Una herramienta local para decisiones basadas en datos.</span>
+          </footer>
+        </section>
+      </main>
+    </div>
+
+    <input id="file-input" type="file" accept=".csv,text/csv" hidden>
+    <div class="drop-overlay" id="drop-overlay" aria-hidden="true" hidden>
+      <div class="drop-message"><span>＋</span><strong>Suelta el CSV para analizarlo</strong><small>El archivo se procesa localmente</small></div>
+    </div>
+  </body>
+</html>
